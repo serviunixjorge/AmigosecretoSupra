@@ -217,26 +217,71 @@
     </div>
   </div>
 
-  <!-- MODAL: Admin PIN Viewer for Jorge -->
+  <!-- MODAL: Admin PIN Viewer for Jorge (Protected by Master PIN 2295) -->
   <div id="modal-admin-pins" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md hidden">
     <div class="bg-zinc-900 border border-zinc-700 max-w-sm w-full p-6 rounded-2xl shadow-2xl space-y-4">
-      <div class="flex justify-between items-center border-b border-zinc-800 pb-2">
+      
+      <!-- VIEW 1: Master PIN Lock Screen -->
+      <div id="admin-lock-view" class="space-y-4 text-center">
+        <div class="text-3xl">🛡️</div>
         <div>
-          <h3 class="font-title text-base text-amber-300 font-bold">🔑 PINs de los Participantes</h3>
-          <p class="text-[11px] text-zinc-400">Pásale a cada persona su código correspondiente:</p>
+          <h3 class="font-title text-base text-amber-300 font-bold">Acceso de Administrador</h3>
+          <p class="text-xs text-zinc-400 mt-1">Ingresa el PIN maestro para ver la lista de claves:</p>
         </div>
-        <button onclick="closeAdminModal()" class="text-zinc-400 hover:text-white">✕</button>
+
+        <!-- Master PIN dots -->
+        <div class="flex justify-center items-center gap-2 my-2">
+          <div id="admin-dot-0" class="w-3.5 h-3.5 rounded-full border-2 border-amber-500/50 bg-zinc-800 transition-all"></div>
+          <div id="admin-dot-1" class="w-3.5 h-3.5 rounded-full border-2 border-amber-500/50 bg-zinc-800 transition-all"></div>
+          <div id="admin-dot-2" class="w-3.5 h-3.5 rounded-full border-2 border-amber-500/50 bg-zinc-800 transition-all"></div>
+          <div id="admin-dot-3" class="w-3.5 h-3.5 rounded-full border-2 border-amber-500/50 bg-zinc-800 transition-all"></div>
+        </div>
+        <p id="admin-pin-error" class="text-red-400 text-xs font-semibold min-h-[1.25rem] px-2 text-center"></p>
+
+        <!-- Admin Keypad -->
+        <div class="grid grid-cols-3 gap-2 max-w-[220px] mx-auto pt-1">
+          <button onclick="pressAdminPinKey('1')" class="py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-sm font-bold text-zinc-100 transition active:scale-95">1</button>
+          <button onclick="pressAdminPinKey('2')" class="py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-sm font-bold text-zinc-100 transition active:scale-95">2</button>
+          <button onclick="pressAdminPinKey('3')" class="py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-sm font-bold text-zinc-100 transition active:scale-95">3</button>
+          <button onclick="pressAdminPinKey('4')" class="py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-sm font-bold text-zinc-100 transition active:scale-95">4</button>
+          <button onclick="pressAdminPinKey('5')" class="py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-sm font-bold text-zinc-100 transition active:scale-95">5</button>
+          <button onclick="pressAdminPinKey('6')" class="py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-sm font-bold text-zinc-100 transition active:scale-95">6</button>
+          <button onclick="pressAdminPinKey('7')" class="py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-sm font-bold text-zinc-100 transition active:scale-95">7</button>
+          <button onclick="pressAdminPinKey('8')" class="py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-sm font-bold text-zinc-100 transition active:scale-95">8</button>
+          <button onclick="pressAdminPinKey('9')" class="py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-sm font-bold text-zinc-100 transition active:scale-95">9</button>
+          <button onclick="clearAdminPinKey()" class="py-2 rounded-xl bg-zinc-800/60 hover:bg-zinc-700 text-[11px] text-zinc-400 font-semibold transition">Borrar</button>
+          <button onclick="pressAdminPinKey('0')" class="py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-sm font-bold text-zinc-100 transition active:scale-95">0</button>
+          <button onclick="backspaceAdminPinKey()" class="py-2 rounded-xl bg-zinc-800/60 hover:bg-zinc-700 text-xs text-zinc-300 transition">⌫</button>
+        </div>
+
+        <div class="pt-2">
+          <button onclick="closeAdminModal()" class="w-full py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs text-zinc-300 font-semibold transition">
+            Cancelar
+          </button>
+        </div>
       </div>
 
-      <div id="admin-pins-list" class="space-y-1.5 max-h-60 overflow-y-auto pr-1">
-        <!-- Rendered by JS -->
+      <!-- VIEW 2: Unlocked PINs List (Only shown after entering 2295) -->
+      <div id="admin-unlocked-view" class="space-y-4 hidden">
+        <div class="flex justify-between items-center border-b border-zinc-800 pb-2">
+          <div>
+            <h3 class="font-title text-base text-amber-300 font-bold">🔑 PINs de los Participantes</h3>
+            <p class="text-[11px] text-zinc-400">Pásale a cada persona su código correspondiente:</p>
+          </div>
+          <button onclick="closeAdminModal()" class="text-zinc-400 hover:text-white">✕</button>
+        </div>
+
+        <div id="admin-pins-list" class="space-y-1.5 max-h-60 overflow-y-auto pr-1">
+          <!-- Rendered by JS -->
+        </div>
+
+        <div class="pt-2 border-t border-zinc-800 text-center">
+          <button onclick="closeAdminModal()" class="w-full py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs text-zinc-300 font-semibold transition">
+            Cerrar y Bloquear
+          </button>
+        </div>
       </div>
 
-      <div class="pt-2 border-t border-zinc-800 text-center">
-        <button onclick="closeAdminModal()" class="w-full py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs text-zinc-300 font-semibold transition">
-          Cerrar
-        </button>
-      </div>
     </div>
   </div>
 
@@ -952,16 +997,94 @@
       requestAnimationFrame(animateBurn);
     };
 
-    // Admin PINs modal handlers
+    // Master Admin PIN Authentication
+    const MASTER_ADMIN_PIN = "2295";
+    window.enteredAdminPin = "";
+
     window.openAdminModal = function() {
+      window.enteredAdminPin = "";
+      updateAdminPinDots();
+      document.getElementById('admin-pin-error').textContent = "";
+      
+      // Reset view to locked state
+      document.getElementById('admin-lock-view').classList.remove('hidden');
+      document.getElementById('admin-unlocked-view').classList.add('hidden');
+      document.getElementById('modal-admin-pins').classList.remove('hidden');
+    };
+
+    window.closeAdminModal = function() {
+      document.getElementById('modal-admin-pins').classList.add('hidden');
+      window.enteredAdminPin = "";
+      // Re-lock
+      document.getElementById('admin-lock-view').classList.remove('hidden');
+      document.getElementById('admin-unlocked-view').classList.add('hidden');
+    };
+
+    window.pressAdminPinKey = function(digit) {
+      if (window.enteredAdminPin.length < 4) {
+        window.enteredAdminPin += digit;
+        updateAdminPinDots();
+
+        if (window.enteredAdminPin.length === 4) {
+          validateAdminMasterPin();
+        }
+      }
+    };
+
+    window.clearAdminPinKey = function() {
+      window.enteredAdminPin = "";
+      updateAdminPinDots();
+      document.getElementById('admin-pin-error').textContent = "";
+    };
+
+    window.backspaceAdminPinKey = function() {
+      window.enteredAdminPin = window.enteredAdminPin.slice(0, -1);
+      updateAdminPinDots();
+      document.getElementById('admin-pin-error').textContent = "";
+    };
+
+    function updateAdminPinDots() {
+      const len = window.enteredAdminPin.length;
+      for (let i = 0; i < 4; i++) {
+        const dot = document.getElementById(`admin-dot-${i}`);
+        if (!dot) continue;
+        if (i < len) {
+          dot.className = "w-3.5 h-3.5 rounded-full border-2 border-amber-400 bg-amber-400 scale-110 shadow-[0_0_8px_rgba(251,191,36,0.8)] transition-all";
+        } else {
+          dot.className = "w-3.5 h-3.5 rounded-full border-2 border-amber-500/50 bg-zinc-800 transition-all";
+        }
+      }
+    }
+
+    function validateAdminMasterPin() {
+      if (window.enteredAdminPin === MASTER_ADMIN_PIN) {
+        document.getElementById('admin-pin-error').textContent = "";
+        showAdminUnlockedList();
+      } else {
+        document.getElementById('admin-pin-error').textContent = "PIN maestro incorrecto";
+        setTimeout(() => {
+          window.enteredAdminPin = "";
+          updateAdminPinDots();
+        }, 550);
+      }
+    }
+
+    function showAdminUnlockedList() {
+      document.getElementById('admin-lock-view').classList.add('hidden');
+      document.getElementById('admin-unlocked-view').classList.remove('hidden');
+
       const listContainer = document.getElementById('admin-pins-list');
       listContainer.innerHTML = '';
       PARTICIPANTS.forEach(name => {
         const pin = PARTICIPANT_PINS[name];
+        const isConsumed = !!window.appState.consumedPins[name];
         const row = document.createElement('div');
         row.className = "flex items-center justify-between p-2 rounded-xl bg-zinc-800/80 border border-zinc-700/60 text-xs";
         row.innerHTML = `
-          <span class="font-semibold text-zinc-200">${escapeHtml(name)}</span>
+          <div class="flex items-center gap-1.5">
+            <span class="font-semibold text-zinc-200">${escapeHtml(name)}</span>
+            ${isConsumed ? '<span class="text-[10px] text-red-400 font-mono">(Usado)</span>' : ''}
+          </div>
           <div class="flex items-center gap-2">
             <span class="font-mono bg-zinc-950 px-2 py-0.5 rounded text-amber-400 font-bold border border-zinc-800">${pin}</span>
             <button onclick="copyParticipantPin('${escapeHtml(name)}', '${pin}')" class="px-2 py-0.5 rounded bg-orange-600/30 text-orange-300 hover:bg-orange-600/50 transition text-[11px]">
@@ -971,12 +1094,7 @@
         `;
         listContainer.appendChild(row);
       });
-      document.getElementById('modal-admin-pins').classList.remove('hidden');
-    };
-
-    window.closeAdminModal = function() {
-      document.getElementById('modal-admin-pins').classList.add('hidden');
-    };
+    }
 
     window.copyParticipantPin = function(name, pin) {
       const text = `Hola ${name}! 🎁 Tu PIN secreto para abrir tu sobre de Amigo Secreto es: ${pin}`;
