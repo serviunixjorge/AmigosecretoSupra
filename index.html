@@ -16,6 +16,9 @@
   <!-- Canvas Confetti CDN -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
+  <!-- MQTT.js CDN for Zero-Config Real-Time Multi-Device WebSockets -->
+  <script src="https://unpkg.com/mqtt@5.3.5/dist/mqtt.min.js"></script>
+
   <!-- Tailwind Theme configuration -->
   <script>
     tailwind.config = {
@@ -114,17 +117,17 @@
       </div>
 
       <div class="flex items-center space-x-2">
-        <div id="connection-pill" class="flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-950/70 border border-emerald-500/40 text-emerald-400 text-xs shadow">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span id="connection-label">Sincronizado</span>
+        <div id="connection-pill" class="flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-950/70 border border-amber-500/40 text-amber-300 text-xs shadow transition-all">
+          <span id="connection-dot" class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+          <span id="connection-label">Conectando en vivo...</span>
         </div>
         
         <button id="btn-admin-pins" onclick="openAdminModal()" class="px-2.5 py-1.5 rounded-lg bg-zinc-800/90 hover:bg-zinc-700 text-xs text-amber-300 border border-amber-500/30 transition flex items-center gap-1.5" title="Ver lista de PINs para repartir">
           <span>🔑</span> <span class="hidden sm:inline">Ver PINs</span>
         </button>
 
-        <button id="btn-config-sync" onclick="openSyncConfigModal()" class="px-3 py-1.5 rounded-lg bg-zinc-800/90 hover:bg-zinc-700 text-xs text-zinc-300 border border-zinc-700 transition" title="Configurar conexión en vivo para varios celulares">
-          ⚙️ Nube
+        <button id="btn-reset-board" onclick="requestAdminReset()" class="px-2.5 py-1.5 rounded-lg bg-zinc-800/90 hover:bg-zinc-700 text-xs text-zinc-300 border border-zinc-700 transition" title="Reiniciar sorteo (sólo admin)">
+          🔄 Reiniciar
         </button>
       </div>
     </div>
@@ -166,7 +169,7 @@
     <div class="mt-8 p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800 text-xs text-zinc-400 text-center max-w-lg mx-auto flex items-center justify-between gap-3">
       <span class="text-xl">📲</span>
       <p class="flex-1 text-left">
-        Comparte el link de este juego por WhatsApp o grupo. Todos verán en tiempo real qué papelitos ya fueron consumidos.
+        Sincronización en vivo activa. En el instante en que alguien queme su papelito en su teléfono, se marcará como <strong>Cenizas</strong> en todas las pantallas.
       </p>
       <button onclick="copyShareLink()" class="px-3 py-1.5 rounded-xl bg-orange-600/30 hover:bg-orange-600/50 text-orange-200 border border-orange-500/40 font-semibold transition shrink-0">
         Copiar Link
@@ -409,7 +412,6 @@
         }
       }
 
-      // Procedural Fire Roar & Embers Crackle
       playFireBurnSound() {
         this.init();
         if (!this.ctx) return;
@@ -417,7 +419,6 @@
         const ctx = this.ctx;
         const now = ctx.currentTime;
 
-        // White noise node for flame ignition
         const bufferSize = ctx.sampleRate * 2.8;
         const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
         const data = buffer.getChannelData(0);
@@ -428,7 +429,6 @@
         const noise = ctx.createBufferSource();
         noise.buffer = buffer;
 
-        // Bandpass filter to shape fire body
         const filter = ctx.createBiquadFilter();
         filter.type = 'bandpass';
         filter.frequency.setValueAtTime(280, now);
@@ -448,7 +448,6 @@
         noise.start(now);
         noise.stop(now + 2.7);
 
-        // Crackling sparks impulses
         for (let i = 0; i < 18; i++) {
           setTimeout(() => {
             if (!this.ctx) return;
@@ -466,13 +465,12 @@
         }
       }
 
-      // Pleasant magical chime when discovering your friend
       playRevealChime() {
         this.init();
         if (!this.ctx) return;
         const ctx = this.ctx;
         const now = ctx.currentTime;
-        const notes = [440, 554.37, 659.25, 880]; // A4, C#5, E5, A5
+        const notes = [440, 554.37, 659.25, 880];
         notes.forEach((freq, idx) => {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
@@ -491,15 +489,7 @@
     const soundManager = new AudioSynthesizer();
   </script>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { 
-      getFirestore, 
-      doc, 
-      setDoc, 
-      onSnapshot 
-    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
+  <script>
     // PARTICIPANTS LIST
     const PARTICIPANTS = [
       "Glori",
@@ -546,27 +536,30 @@
       "Glori": "Jorge"
     };
 
-    // Global room state
+    // Public WebSocket MQTT Broker & Topic for zero-config live multi-device synchronization
+    const MQTT_BROKER_URL = "wss://broker.hivemq.com:8884/mqtt";
+    const MQTT_TOPIC_STATE = "amigosecreto/supra2026/estado_v1";
+
+    // Global application state
     window.appState = {
       participants: PARTICIPANTS,
       pins: PARTICIPANT_PINS,
       assignments: FIXED_ASSIGNMENTS,
       burnedStatus: {},
       consumedPins: {},
-      db: null,
-      useCloud: false,
       selectedParticipant: null,
       enteredPin: "",
-      countdownInterval: null
+      countdownInterval: null,
+      mqttClient: null
     };
 
-    // Initialize burned status
+    // Initialize state
     PARTICIPANTS.forEach(name => {
       window.appState.burnedStatus[name] = false;
       window.appState.consumedPins[name] = false;
     });
 
-    // Ambient embers in background
+    // Create background embers
     function createAmbientEmbers() {
       const container = document.getElementById('ambient-container');
       if (!container) return;
@@ -585,86 +578,98 @@
     }
     createAmbientEmbers();
 
-    // Setup Cloud Firestore if credentials exist
-    function initSyncEngine() {
-      const storedConfig = localStorage.getItem('as_secret_firebase_config');
+    // Zero-Config Global Real-Time WebSocket Engine
+    function initRealtimeSync() {
       const connPill = document.getElementById('connection-pill');
+      const connDot = document.getElementById('connection-dot');
       const connLabel = document.getElementById('connection-label');
 
-      let config = null;
-      if (storedConfig) {
-        try { config = JSON.parse(storedConfig); } catch (e) {}
+      // Load cached local state first for immediate UI
+      const localBurned = localStorage.getItem('as_burned_status');
+      if (localBurned) {
+        try { Object.assign(window.appState.burnedStatus, JSON.parse(localBurned)); } catch(e){}
       }
-
-      if (config && config.apiKey) {
-        try {
-          const app = initializeApp(config);
-          window.appState.db = getFirestore(app);
-          window.appState.useCloud = true;
-          connPill.className = "flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-950/70 border border-emerald-500/40 text-emerald-400 text-xs shadow";
-          connLabel.textContent = "Nube Firebase Activa";
-          listenCloudStatus();
-          return;
-        } catch (err) {
-          console.warn("Fallback to broadcast", err);
-        }
-      }
-
-      // Local / Cross-tab Broadcast Channel fallback
-      window.appState.useCloud = false;
-      connPill.className = "flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-950/60 border border-amber-500/40 text-amber-300 text-xs";
-      connLabel.textContent = "Sincronización Local / Enlace";
-      initBroadcastSync();
-    }
-
-    function listenCloudStatus() {
-      if (!window.appState.useCloud || !window.appState.db) return;
-      const docRef = doc(window.appState.db, "amigo_secreto_2026", "sala_principal");
-      onSnapshot(docRef, (snapshot) => {
-        if (snapshot.exists()) {
-          const data = snapshot.data();
-          if (data && data.burnedStatus) {
-            window.appState.burnedStatus = { ...window.appState.burnedStatus, ...data.burnedStatus };
-            window.appState.consumedPins = { ...window.appState.consumedPins, ...(data.consumedPins || {}) };
-            renderBoard();
-          }
-        }
-      }, (err) => console.error(err));
-    }
-
-    function initBroadcastSync() {
-      if ('BroadcastChannel' in window) {
-        const channel = new BroadcastChannel('amigo_secreto_sync_channel');
-        channel.onmessage = (event) => {
-          if (event.data) {
-            if (event.data.burnedStatus) {
-              window.appState.burnedStatus = { ...window.appState.burnedStatus, ...event.data.burnedStatus };
-            }
-            if (event.data.consumedPins) {
-              window.appState.consumedPins = { ...window.appState.consumedPins, ...event.data.consumedPins };
-            }
-            renderBoard();
-          }
-        };
-      }
-
-      const localSaved = localStorage.getItem('as_burned_status');
-      if (localSaved) {
-        try {
-          window.appState.burnedStatus = { ...window.appState.burnedStatus, ...JSON.parse(localSaved) };
-        } catch(e) {}
-      }
-
       const localConsumed = localStorage.getItem('as_consumed_pins');
       if (localConsumed) {
-        try {
-          window.appState.consumedPins = { ...window.appState.consumedPins, ...JSON.parse(localConsumed) };
-        } catch(e) {}
+        try { Object.assign(window.appState.consumedPins, JSON.parse(localConsumed)); } catch(e){}
       }
       renderBoard();
+
+      // Connect to HiveMQ Public Secure WebSocket Broker
+      try {
+        const clientId = 'client_' + Math.random().toString(16).substring(2, 10);
+        const client = mqtt.connect(MQTT_BROKER_URL, {
+          clientId: clientId,
+          clean: true,
+          connectTimeout: 5000,
+          reconnectPeriod: 3000
+        });
+
+        window.appState.mqttClient = client;
+
+        client.on('connect', () => {
+          connPill.className = "flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-950/70 border border-emerald-500/40 text-emerald-400 text-xs shadow";
+          connDot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+          connLabel.textContent = "En Vivo (Todos los celulares)";
+
+          // Subscribe to topic
+          client.subscribe(MQTT_TOPIC_STATE, { qos: 1 });
+        });
+
+        client.on('message', (topic, message) => {
+          if (topic === MQTT_TOPIC_STATE) {
+            try {
+              const payload = JSON.parse(message.toString());
+              if (payload && payload.type === "STATE_UPDATE") {
+                if (payload.burnedStatus) {
+                  Object.assign(window.appState.burnedStatus, payload.burnedStatus);
+                  localStorage.setItem('as_burned_status', JSON.stringify(window.appState.burnedStatus));
+                }
+                if (payload.consumedPins) {
+                  Object.assign(window.appState.consumedPins, payload.consumedPins);
+                  localStorage.setItem('as_consumed_pins', JSON.stringify(window.appState.consumedPins));
+                }
+                renderBoard();
+
+                if (payload.justBurned) {
+                  showToast(`¡El papelito de ${payload.justBurned} se acaba de quemar!`, "🔥");
+                }
+              } else if (payload && payload.type === "RESET_ALL") {
+                PARTICIPANTS.forEach(p => {
+                  window.appState.burnedStatus[p] = false;
+                  window.appState.consumedPins[p] = false;
+                });
+                localStorage.removeItem('as_burned_status');
+                localStorage.removeItem('as_consumed_pins');
+                renderBoard();
+                showToast("El sorteo ha sido reiniciado.", "🔄");
+              }
+            } catch (err) {
+              console.error("Error parsing sync message:", err);
+            }
+          }
+        });
+
+        client.on('error', (err) => {
+          console.warn("MQTT connection error:", err);
+          connPill.className = "flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-950/70 border border-amber-500/40 text-amber-300 text-xs";
+          connDot.className = "w-2 h-2 rounded-full bg-amber-500";
+          connLabel.textContent = "Reconectando en vivo...";
+        });
+
+        client.on('offline', () => {
+          connPill.className = "flex items-center space-x-2 px-3 py-1 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-400 text-xs";
+          connDot.className = "w-2 h-2 rounded-full bg-zinc-500";
+          connLabel.textContent = "Sin conexión en vivo";
+        });
+
+      } catch (err) {
+        console.error("MQTT initialization failed:", err);
+      }
     }
 
-    window.syncBurnedStatus = async function(updatedMap, updatedConsumed) {
+    // Broadcast state update to all phones via MQTT (retained = true)
+    window.syncBurnedStatus = function(updatedMap, updatedConsumed, justBurnedName = null) {
       window.appState.burnedStatus = updatedMap;
       if (updatedConsumed) {
         window.appState.consumedPins = updatedConsumed;
@@ -672,30 +677,20 @@
       }
       localStorage.setItem('as_burned_status', JSON.stringify(updatedMap));
 
-      // Broadcast to other tabs
-      if ('BroadcastChannel' in window) {
-        const channel = new BroadcastChannel('amigo_secreto_sync_channel');
-        channel.postMessage({ 
-          burnedStatus: updatedMap,
-          consumedPins: window.appState.consumedPins
-        });
-        channel.close();
-      }
-
-      // Cloud Firestore if available
-      if (window.appState.useCloud && window.appState.db) {
-        try {
-          const docRef = doc(window.appState.db, "amigo_secreto_2026", "sala_principal");
-          await setDoc(docRef, { 
-            burnedStatus: updatedMap,
-            consumedPins: window.appState.consumedPins
-          }, { merge: true });
-        } catch (err) {
-          console.error("Cloud push failed:", err);
-        }
-      }
-
       renderBoard();
+
+      if (window.appState.mqttClient && window.appState.mqttClient.connected) {
+        const payload = JSON.stringify({
+          type: "STATE_UPDATE",
+          burnedStatus: updatedMap,
+          consumedPins: window.appState.consumedPins,
+          justBurned: justBurnedName,
+          timestamp: Date.now()
+        });
+
+        // retain: true guarantees that any participant who opens the link later receives this state instantly
+        window.appState.mqttClient.publish(MQTT_TOPIC_STATE, payload, { qos: 1, retain: true });
+      }
     };
 
     function renderBoard() {
@@ -720,7 +715,7 @@
           card.innerHTML = `
             <div class="space-y-2">
               <div class="flex items-center justify-between text-xs text-zinc-500">
-                <span class="font-mono">#REVELADO</span>
+                <span class="font-mono">#CONSUMIDO</span>
                 <span class="text-orange-500/70 font-semibold">Cenizas 🔥</span>
               </div>
               <h4 class="font-bold text-zinc-400 text-lg line-through">${escapeHtml(name)}</h4>
@@ -824,7 +819,6 @@
       const name = window.appState.selectedParticipant;
       const expected = PARTICIPANT_PINS[name];
 
-      // Verification: Check if PIN was already used previously
       if (window.appState.consumedPins[name] || window.appState.burnedStatus[name]) {
         document.getElementById('pin-error-msg').textContent = "⛔ Este PIN ya fue utilizado y el papelito fue destruido.";
         setTimeout(() => {
@@ -837,11 +831,10 @@
       if (window.appState.enteredPin === expected) {
         document.getElementById('pin-error-msg').textContent = "";
         
-        // SINGLE-USE PIN INACTIVATION:
-        // Invalidate PIN immediately so it cannot be used a second time
+        // Single-use PIN marked and immediately synchronized to all devices
         const updatedConsumed = { ...window.appState.consumedPins, [name]: true };
         const updatedBurned = { ...window.appState.burnedStatus, [name]: true };
-        window.syncBurnedStatus(updatedBurned, updatedConsumed);
+        window.syncBurnedStatus(updatedBurned, updatedConsumed, name);
 
         window.proceedToSecretReveal();
       } else {
@@ -870,7 +863,7 @@
 
       document.getElementById('burn-action-section').classList.remove('hidden');
       document.getElementById('burn-completed-box').classList.add('hidden');
-      document.getElementById('btn-cancel-modal').classList.add('hidden'); // Cannot go back without burning
+      document.getElementById('btn-cancel-modal').classList.add('hidden');
 
       const canvas = document.getElementById('fire-canvas');
       const ctx = canvas.getContext('2d');
@@ -990,14 +983,14 @@
 
           const updatedBurned = { ...window.appState.burnedStatus, [name]: true };
           const updatedConsumed = { ...window.appState.consumedPins, [name]: true };
-          window.syncBurnedStatus(updatedBurned, updatedConsumed);
+          window.syncBurnedStatus(updatedBurned, updatedConsumed, name);
         }
       }
 
       requestAnimationFrame(animateBurn);
     };
 
-    // Master Admin PIN Authentication
+    // Master Admin PIN Authentication (2295)
     const MASTER_ADMIN_PIN = "2295";
     window.enteredAdminPin = "";
 
@@ -1006,7 +999,6 @@
       updateAdminPinDots();
       document.getElementById('admin-pin-error').textContent = "";
       
-      // Reset view to locked state
       document.getElementById('admin-lock-view').classList.remove('hidden');
       document.getElementById('admin-unlocked-view').classList.add('hidden');
       document.getElementById('modal-admin-pins').classList.remove('hidden');
@@ -1015,7 +1007,6 @@
     window.closeAdminModal = function() {
       document.getElementById('modal-admin-pins').classList.add('hidden');
       window.enteredAdminPin = "";
-      // Re-lock
       document.getElementById('admin-lock-view').classList.remove('hidden');
       document.getElementById('admin-unlocked-view').classList.add('hidden');
     };
@@ -1101,39 +1092,24 @@
       copyToClipboardText(text, `PIN de ${name} copiado`);
     };
 
-    // Firebase Sync Config Modal Handlers
-    window.openSyncConfigModal = function() {
-      const stored = localStorage.getItem('as_secret_firebase_config') || '';
-      document.getElementById('input-firebase-config').value = stored;
-      document.getElementById('modal-sync-config').classList.remove('hidden');
-    };
-
-    window.closeSyncConfigModal = function() {
-      document.getElementById('modal-sync-config').classList.add('hidden');
-    };
-
-    window.saveSyncCredentials = function() {
-      const val = document.getElementById('input-firebase-config').value.trim();
-      if (!val) {
-        localStorage.removeItem('as_secret_firebase_config');
-        window.closeSyncConfigModal();
-        showToast("Modo local activado", "💾");
-        initSyncEngine();
-        return;
-      }
-
-      try {
-        const parsed = JSON.parse(val);
-        if (!parsed.apiKey || !parsed.projectId) {
-          showToast("El JSON debe incluir 'apiKey' y 'projectId'", "⚠️");
-          return;
+    // Admin board reset option
+    window.requestAdminReset = function() {
+      const entered = prompt("Ingresa el PIN de Administrador (2295) para reiniciar todos los papelitos:");
+      if (entered === MASTER_ADMIN_PIN) {
+        if (window.appState.mqttClient && window.appState.mqttClient.connected) {
+          const payload = JSON.stringify({ type: "RESET_ALL", timestamp: Date.now() });
+          window.appState.mqttClient.publish(MQTT_TOPIC_STATE, payload, { qos: 1, retain: true });
         }
-        localStorage.setItem('as_secret_firebase_config', JSON.stringify(parsed));
-        window.closeSyncConfigModal();
-        showToast("¡Configuración guardada! Conectando...", "🔥");
-        initSyncEngine();
-      } catch (err) {
-        showToast("Formato JSON inválido", "❌");
+        PARTICIPANTS.forEach(p => {
+          window.appState.burnedStatus[p] = false;
+          window.appState.consumedPins[p] = false;
+        });
+        localStorage.removeItem('as_burned_status');
+        localStorage.removeItem('as_consumed_pins');
+        renderBoard();
+        showToast("Tablero reiniciado para todos los dispositivos.", "🔄");
+      } else if (entered !== null) {
+        showToast("PIN incorrecto. No autorizado.", "❌");
       }
     };
 
@@ -1177,8 +1153,10 @@
       });
     }
 
-    // Startup
-    initSyncEngine();
+    // Startup real-time sync
+    window.addEventListener('DOMContentLoaded', () => {
+      initRealtimeSync();
+    });
   </script>
 </body>
 </html>
