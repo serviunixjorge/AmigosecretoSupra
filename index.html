@@ -58,7 +58,6 @@
       border: 1px solid #d4c29d;
     }
 
-    /* Teclas táctiles grandes para móvil */
     .key-btn {
       touch-action: manipulation;
       min-height: 54px;
@@ -72,7 +71,7 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between selection:bg-amber-500 selection:text-black pb-6">
 
-  <!-- Barra Superior Móvil -->
+  <!-- Barra Superior -->
   <header class="relative z-10 w-full px-4 py-3 max-w-lg mx-auto flex items-center justify-between border-b border-amber-950/40">
     <div class="flex items-center space-x-1.5">
       <span class="text-xl">🔥</span>
@@ -102,16 +101,16 @@
         El Fuego Sagrado
       </h1>
       <p class="text-stone-400 text-xs mt-1">
-        Toca tu sobre, pon tu PIN y quema tu papelito. <br><span class="text-amber-400 font-semibold">Solo se abre una vez</span>.
+        Toca tu sobre, pon tu PIN y mira tu amigo secreto con calma. <br><span class="text-amber-400 font-semibold">Al terminar, presiona quemar</span>.
       </p>
     </div>
 
-    <!-- Grid de Sobres (2 columnas ideales para celular) -->
-    <div id="envelopesGrid" class="w-full grid grid-cols-2 gap-3"></div>
+    <!-- Grid de Sobres (8 participantes) -->
+    <div id="envelopesGrid" class="w-full grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
   </main>
 
   <footer class="relative z-10 text-center text-[10px] text-stone-600">
-    Actualización en vivo para celulares &bull; 2026
+    Actualización en vivo para celulares &bull; 8 Participantes
   </footer>
 
   <!-- MODAL: TECLADO PIN PARTICIPANTE -->
@@ -123,7 +122,6 @@
       <h3 class="font-cinzel text-base font-bold text-amber-400" id="pinModalTitle">Sobre</h3>
       <p class="text-[11px] text-stone-400 mb-3">Digita tu PIN de 4 dígitos</p>
 
-      <!-- Indicadores de PIN -->
       <div class="flex justify-center space-x-3 mb-4">
         <div id="dot-0" class="w-3.5 h-3.5 rounded-full border border-stone-700 bg-stone-950 transition-all"></div>
         <div id="dot-1" class="w-3.5 h-3.5 rounded-full border border-stone-700 bg-stone-950 transition-all"></div>
@@ -133,7 +131,7 @@
 
       <div id="pinErrorMsg" class="text-xs text-red-400 font-semibold mb-2 h-4"></div>
 
-      <!-- Teclado Táctil Móvil -->
+      <!-- Teclado Táctil -->
       <div class="grid grid-cols-3 gap-2">
         <button type="button" data-key="1" class="key-btn rounded-xl bg-stone-800 text-white font-bold">1</button>
         <button type="button" data-key="2" class="key-btn rounded-xl bg-stone-800 text-white font-bold">2</button>
@@ -151,34 +149,33 @@
     </div>
   </div>
 
-  <!-- MODAL: PERGAMINO Y QUEMA -->
+  <!-- MODAL: PERGAMINO Y QUEMA (SIN AUTODESTRUCCIÓN FORZADA) -->
   <div id="parchmentModal" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md hidden flex flex-col items-center justify-center p-4">
-    <div class="text-amber-500 font-cinzel text-[11px] tracking-widest mb-3 bg-amber-950/60 px-3 py-1 rounded-full border border-amber-800/40">
-      AUTODESTRUCCIÓN: <span id="timerSeconds" class="font-bold text-red-400">30s</span>
+    <div class="text-amber-400 font-cinzel text-xs tracking-wider mb-3 bg-amber-950/70 px-4 py-1.5 rounded-full border border-amber-600/40">
+      👁️ CONFIDENCIAL &bull; LÉELO CON CALMA
     </div>
 
-    <!-- Contenedor del Pergamino -->
     <div class="w-full max-w-xs">
       <div id="parchmentPaper" class="parchment rounded-xl p-6 text-center shadow-2xl relative transition-all duration-700">
-        <div class="text-[11px] uppercase tracking-widest text-amber-950 font-bold">Te tocó regalarle a:</div>
+        <div class="text-[12px] uppercase tracking-widest text-amber-950 font-bold">Te tocó regalarle a:</div>
         
         <div id="targetFriendName" class="font-hand text-5xl text-amber-950 font-bold my-4 py-2 select-none">
           ---
         </div>
 
-        <p class="text-stone-700 text-[11px] italic">
-          "Guarda el nombre en tu mente. El papelito se quemará para siempre."
+        <p class="text-stone-700 text-xs italic">
+          "Asegúrate de memorizar el nombre antes de presionar el botón de abajo."
         </p>
       </div>
     </div>
 
-    <!-- Botón Quemar -->
+    <!-- Botón Quemar Seguro -->
     <button id="burnBtn" type="button" class="mt-6 w-full max-w-xs py-4 bg-gradient-to-r from-red-600 via-amber-600 to-red-700 text-white font-cinzel font-bold text-sm tracking-wider rounded-xl shadow-lg active:scale-95 transition">
       🔥 QUEMAR PAPELITO 🔥
     </button>
   </div>
 
-  <!-- MODAL: ADMIN (VER PINS - SIN PROMPT) -->
+  <!-- MODAL: ADMIN (VER PINS) -->
   <div id="adminModal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-4">
     <div class="w-full max-w-sm bg-stone-900 border border-amber-600/40 rounded-2xl p-5 shadow-2xl max-h-[85vh] flex flex-col">
       <div class="flex justify-between items-center pb-2 border-b border-stone-800">
@@ -186,7 +183,6 @@
         <button id="closeAdminBtn" type="button" class="text-stone-400 p-1 text-lg">✕</button>
       </div>
 
-      <!-- Paso 1: Pedir Clave 2295 en pantalla -->
       <div id="adminPassSection" class="py-4 text-center">
         <p class="text-xs text-stone-300 mb-3">Introduce la clave de Administrador:</p>
         <input id="adminPassInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" class="w-32 text-center text-xl tracking-widest py-2 bg-stone-950 border border-amber-600/40 rounded-lg text-amber-400 focus:outline-none mb-3">
@@ -194,7 +190,6 @@
         <button id="confirmAdminPassBtn" type="button" class="px-4 py-2 bg-amber-600 text-black font-bold rounded-lg text-xs">Entrar</button>
       </div>
 
-      <!-- Paso 2: Lista de PINs -->
       <div id="adminPinsSection" class="hidden flex-1 overflow-y-auto space-y-1.5 pr-1 my-2">
         <div id="adminPinsList"></div>
       </div>
@@ -202,7 +197,7 @@
   </div>
 
   <script>
-    // Asignaciones
+    // DATOS EXACTOS ORIGINALES (8 Participantes - Sin modificaciones)
     const PARTICIPANTS = [
       { name: "Glori",   pin: "1472", target: "Caro" },
       { name: "Vivi",    pin: "2839", target: "Paula" },
@@ -211,7 +206,7 @@
       { name: "Caro",    pin: "5193", target: "Vero C" },
       { name: "Yuli",    pin: "6382", target: "Vero U" },
       { name: "Paula",   pin: "7241", target: "Yuli" },
-      { name: "Jorge",   pin: "8615", target: "Vivi" } // Condición solicitada
+      { name: "Jorge",   pin: "8615", target: "Vivi" }
     ];
 
     const MASTER_PIN = "2295";
@@ -221,13 +216,11 @@
     let burnedMap = {};
     let activeUser = null;
     let currentInputPin = "";
-    let autoBurnInterval = null;
+    let isViewingParchment = false;
 
-    // Inicializar
     document.addEventListener('DOMContentLoaded', () => {
-      // Cargar caché local
       try {
-        const saved = localStorage.getItem('burned_cache_amigo');
+        const saved = localStorage.getItem('burned_cache_amigo_8_safe');
         if (saved) burnedMap = JSON.parse(saved);
       } catch(e){}
 
@@ -237,9 +230,10 @@
       startPollingSync();
     });
 
-    // Sincronización continua optimizada para red móvil
     async function startPollingSync() {
       async function checkUpdates() {
+        if (isViewingParchment) return; // Evita cierres de pantalla durante la lectura
+
         try {
           const res = await fetch(`${SYNC_URL}/json?poll=1`, { cache: 'no-store' });
           if (res.ok) {
@@ -255,21 +249,20 @@
       }
 
       await checkUpdates();
-      // En celular consulta periódicamente en segundo plano
-      setInterval(checkUpdates, 3000);
+      setInterval(checkUpdates, 4000);
     }
 
     function applyPayload(messageStr) {
-      if (!messageStr) return;
+      if (!messageStr || isViewingParchment) return;
       try {
         const data = JSON.parse(messageStr);
         if (data.action === 'BURN' && data.name) {
           burnedMap[data.name] = true;
-          localStorage.setItem('burned_cache_amigo', JSON.stringify(burnedMap));
+          localStorage.setItem('burned_cache_amigo_8_safe', JSON.stringify(burnedMap));
           renderGrid();
         } else if (data.action === 'RESET') {
           burnedMap = {};
-          localStorage.setItem('burned_cache_amigo', JSON.stringify(burnedMap));
+          localStorage.setItem('burned_cache_amigo_8_safe', JSON.stringify(burnedMap));
           renderGrid();
         }
       } catch(e){}
@@ -277,7 +270,7 @@
 
     async function broadcastBurn(name) {
       burnedMap[name] = true;
-      localStorage.setItem('burned_cache_amigo', JSON.stringify(burnedMap));
+      localStorage.setItem('burned_cache_amigo_8_safe', JSON.stringify(burnedMap));
       renderGrid();
 
       try {
@@ -291,7 +284,7 @@
 
     async function broadcastReset() {
       burnedMap = {};
-      localStorage.setItem('burned_cache_amigo', JSON.stringify(burnedMap));
+      localStorage.setItem('burned_cache_amigo_8_safe', JSON.stringify(burnedMap));
       renderGrid();
       try {
         await fetch(SYNC_URL, {
@@ -303,6 +296,7 @@
     }
 
     function renderGrid() {
+      if (isViewingParchment) return;
       const grid = document.getElementById('envelopesGrid');
       grid.innerHTML = '';
 
@@ -323,7 +317,6 @@
           </span>
         `;
 
-        // Eventos táctiles para evitar bloqueos en teléfono
         card.addEventListener('click', (e) => {
           e.preventDefault();
           if (isBurned) {
@@ -349,7 +342,9 @@
 
     function closePinModal() {
       document.getElementById('pinModal').classList.add('hidden');
-      activeUser = null;
+      if (!isViewingParchment) {
+        activeUser = null;
+      }
       currentInputPin = "";
     }
 
@@ -372,7 +367,7 @@
             currentInputPin += btn.getAttribute('data-key');
             updateDots();
             if (currentInputPin.length === 4) {
-              setTimeout(checkPin, 120);
+              setTimeout(checkPin, 100);
             }
           }
         });
@@ -410,10 +405,11 @@
     }
 
     function showParchment(user) {
+      isViewingParchment = true;
       activeUser = user;
+      
       const modal = document.getElementById('parchmentModal');
       const targetName = document.getElementById('targetFriendName');
-      const timerSec = document.getElementById('timerSeconds');
       const paper = document.getElementById('parchmentPaper');
       const burnBtn = document.getElementById('burnBtn');
 
@@ -425,22 +421,13 @@
       burnBtn.classList.remove('opacity-50', 'pointer-events-none');
 
       modal.classList.remove('hidden');
-
-      let left = 30;
-      timerSec.innerText = `${left}s`;
-      clearInterval(autoBurnInterval);
-      autoBurnInterval = setInterval(() => {
-        left--;
-        timerSec.innerText = `${left}s`;
-        if (left <= 0) {
-          clearInterval(autoBurnInterval);
-          executeBurn();
-        }
-      }, 1000);
     }
 
     function executeBurn() {
-      clearInterval(autoBurnInterval);
+      if (!confirm("¿Ya memorizaste a tu amigo secreto? Una vez quemado no se podrá volver a abrir.")) {
+        return;
+      }
+
       const burnBtn = document.getElementById('burnBtn');
       burnBtn.disabled = true;
       burnBtn.classList.add('opacity-50', 'pointer-events-none');
@@ -460,17 +447,18 @@
       paper.style.transform = "scale(0.85) rotate(2deg)";
       paper.style.opacity = "0";
 
-      if (activeUser) {
-        broadcastBurn(activeUser.name);
-      }
+      const userThatBurned = activeUser ? activeUser.name : null;
 
       setTimeout(() => {
         document.getElementById('parchmentModal').classList.add('hidden');
+        isViewingParchment = false;
+        if (userThatBurned) {
+          broadcastBurn(userThatBurned);
+        }
         alert("🔥 Papelito destruido para siempre.");
       }, 1600);
     }
 
-    // Panel Administrador adaptado a móvil (sin prompt del sistema)
     function setupAdminEvents() {
       const adminBtn = document.getElementById('adminBtn');
       const adminModal = document.getElementById('adminModal');
