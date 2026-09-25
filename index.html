@@ -2,17 +2,23 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Amigo Secreto - El Fuego Sagrado 🔥</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Reenie+Beanie&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Inter:wght@400;600;700&family=Reenie+Beanie&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <style>
+    * {
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+      box-sizing: border-box;
+    }
     body {
       font-family: 'Inter', sans-serif;
       background-color: #0b090a;
@@ -23,171 +29,180 @@
     .font-hand { font-family: 'Reenie Beanie', cursive; }
     
     .gold-glow {
-      text-shadow: 0 0 15px rgba(245, 158, 11, 0.5), 0 0 30px rgba(239, 68, 68, 0.3);
+      text-shadow: 0 0 15px rgba(245, 158, 11, 0.5), 0 0 25px rgba(239, 68, 68, 0.3);
     }
 
     .envelope-card {
       background: linear-gradient(145deg, #1f1b18 0%, #14110f 100%);
-      border: 1px solid rgba(217, 119, 6, 0.25);
-      transition: all 0.3s ease;
+      border: 1px solid rgba(217, 119, 6, 0.35);
+      touch-action: manipulation;
     }
-    .envelope-card:hover:not(.burned) {
-      transform: translateY(-4px);
-      border-color: rgba(245, 158, 11, 0.6);
-      box-shadow: 0 12px 25px -5px rgba(245, 158, 11, 0.2);
+    .envelope-card:active:not(.burned) {
+      transform: scale(0.97);
+      background: #2a241f;
     }
     .envelope-card.burned {
-      background: linear-gradient(145deg, #0d0c0b 0%, #050505 100%);
+      background: #11100f;
       border-color: rgba(60, 60, 60, 0.3);
       filter: grayscale(1);
-      opacity: 0.55;
+      opacity: 0.5;
     }
 
     .parchment {
       background: #f4ecd8;
       background-image: 
-        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.85), rgba(244, 236, 216, 0.95)),
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.9), rgba(244, 236, 216, 0.95)),
         radial-gradient(circle at 0% 100%, rgba(139, 69, 19, 0.15), transparent 40%),
         radial-gradient(circle at 100% 0%, rgba(139, 69, 19, 0.15), transparent 40%);
-      box-shadow: inset 0 0 40px rgba(115, 60, 15, 0.3), 0 20px 40px rgba(0,0,0,0.8);
+      box-shadow: inset 0 0 30px rgba(115, 60, 15, 0.3), 0 15px 35px rgba(0,0,0,0.85);
       border: 1px solid #d4c29d;
+    }
+
+    /* Teclas táctiles grandes para móvil */
+    .key-btn {
+      touch-action: manipulation;
+      min-height: 54px;
+      font-size: 1.35rem;
+    }
+    .key-btn:active {
+      transform: scale(0.92);
+      background-color: #d97706 !important;
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between selection:bg-amber-500 selection:text-black">
+<body class="min-h-screen flex flex-col justify-between selection:bg-amber-500 selection:text-black pb-6">
 
-  <canvas id="ambientCanvas" class="fixed inset-0 pointer-events-none z-0"></canvas>
-
-  <!-- Barra Superior -->
-  <header class="relative z-10 w-full px-4 py-4 max-w-4xl mx-auto flex items-center justify-between border-b border-amber-950/40">
-    <div class="flex items-center space-x-2">
-      <span class="text-2xl animate-bounce">🔥</span>
-      <span class="font-cinzel text-lg md:text-xl font-bold tracking-wider text-amber-500">AMIGO SECRETO</span>
+  <!-- Barra Superior Móvil -->
+  <header class="relative z-10 w-full px-4 py-3 max-w-lg mx-auto flex items-center justify-between border-b border-amber-950/40">
+    <div class="flex items-center space-x-1.5">
+      <span class="text-xl">🔥</span>
+      <span class="font-cinzel text-base font-bold tracking-wider text-amber-500">AMIGO SECRETO</span>
     </div>
     
     <div class="flex items-center space-x-2">
-      <div id="syncBadge" class="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/40 text-xs text-emerald-400">
-        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-        <span id="syncText">Sincronizado</span>
+      <div id="syncBadge" class="flex items-center space-x-1 px-2 py-0.5 rounded-full bg-emerald-950/70 border border-emerald-500/40 text-[11px] text-emerald-400">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span id="syncText">En línea</span>
       </div>
 
-      <button onclick="promptMasterPin()" class="px-3 py-1.5 rounded-lg bg-stone-900 border border-amber-800/40 text-amber-300 hover:text-amber-100 hover:bg-stone-800 text-xs font-medium transition flex items-center space-x-1">
-        <span>🔑</span>
-        <span>Ver PINs</span>
+      <button id="adminBtn" type="button" class="px-2.5 py-1 rounded-lg bg-stone-900 border border-amber-800/40 text-amber-300 text-xs font-medium">
+        🔑 PINs
       </button>
 
-      <button onclick="promptResetGame()" class="px-2.5 py-1.5 rounded-lg bg-stone-900 border border-red-900/40 text-red-400 hover:bg-red-950 text-xs transition" title="Reiniciar Sorteo (Admin)">
+      <button id="resetBtn" type="button" class="px-2 py-1 rounded-lg bg-stone-900 border border-red-900/40 text-red-400 text-xs">
         🔄
       </button>
     </div>
   </header>
 
   <!-- Contenido Central -->
-  <main class="relative z-10 w-full max-w-4xl mx-auto px-4 py-6 flex-1 flex flex-col items-center justify-center">
-    <div class="text-center mb-8">
-      <h1 class="font-cinzel text-3xl md:text-5xl font-extrabold tracking-tight text-white mb-2 gold-glow">
+  <main class="relative z-10 w-full max-w-lg mx-auto px-4 py-4 flex-1 flex flex-col items-center justify-center">
+    <div class="text-center mb-5">
+      <h1 class="font-cinzel text-2xl font-extrabold tracking-tight text-white gold-glow">
         El Fuego Sagrado
       </h1>
-      <p class="text-stone-400 text-sm md:text-base max-w-md mx-auto">
-        Toca tu sobre, ingresa tu PIN y quema tu papelito. <span class="text-amber-400 font-semibold">Solo se puede ver una vez</span>.
+      <p class="text-stone-400 text-xs mt-1">
+        Toca tu sobre, pon tu PIN y quema tu papelito. <br><span class="text-amber-400 font-semibold">Solo se abre una vez</span>.
       </p>
     </div>
 
-    <!-- Grid de Sobres -->
-    <div id="envelopesGrid" class="w-full grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-6"></div>
+    <!-- Grid de Sobres (2 columnas ideales para celular) -->
+    <div id="envelopesGrid" class="w-full grid grid-cols-2 gap-3"></div>
   </main>
 
-  <footer class="relative z-10 py-4 text-center text-xs text-stone-600 border-t border-stone-900">
-    Sorteo Protegido &bull; Actualización en Vivo en Todos los Celulares
+  <footer class="relative z-10 text-center text-[10px] text-stone-600">
+    Actualización en vivo para celulares &bull; 2026
   </footer>
 
   <!-- MODAL: TECLADO PIN PARTICIPANTE -->
-  <div id="pinModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4">
-    <div class="w-full max-w-xs bg-stone-900 border border-amber-500/30 rounded-2xl p-6 shadow-2xl relative text-center">
-      <button onclick="closePinModal()" class="absolute top-4 right-4 text-stone-500 hover:text-stone-300 text-lg">✕</button>
+  <div id="pinModal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden flex items-end sm:items-center justify-center p-3">
+    <div class="w-full max-w-sm bg-stone-900 border border-amber-500/40 rounded-2xl p-5 shadow-2xl relative text-center mb-2 sm:mb-0">
+      <button id="closePinBtn" type="button" class="absolute top-3 right-3 text-stone-400 text-xl p-2">✕</button>
       
-      <div class="text-3xl mb-1">✉️</div>
-      <h3 class="font-cinzel text-lg font-bold text-amber-400" id="pinModalTitle">Sobre</h3>
-      <p class="text-xs text-stone-400 mt-1 mb-4">Ingresa tu PIN de 4 dígitos</p>
+      <div class="text-2xl mb-1">✉️</div>
+      <h3 class="font-cinzel text-base font-bold text-amber-400" id="pinModalTitle">Sobre</h3>
+      <p class="text-[11px] text-stone-400 mb-3">Digita tu PIN de 4 dígitos</p>
 
-      <!-- Display PIN -->
-      <div class="flex justify-center space-x-3 mb-6">
-        <div id="dot-0" class="w-3.5 h-3.5 rounded-full border border-amber-600 bg-stone-950 transition-all"></div>
-        <div id="dot-1" class="w-3.5 h-3.5 rounded-full border border-amber-600 bg-stone-950 transition-all"></div>
-        <div id="dot-2" class="w-3.5 h-3.5 rounded-full border border-amber-600 bg-stone-950 transition-all"></div>
-        <div id="dot-3" class="w-3.5 h-3.5 rounded-full border border-amber-600 bg-stone-950 transition-all"></div>
+      <!-- Indicadores de PIN -->
+      <div class="flex justify-center space-x-3 mb-4">
+        <div id="dot-0" class="w-3.5 h-3.5 rounded-full border border-stone-700 bg-stone-950 transition-all"></div>
+        <div id="dot-1" class="w-3.5 h-3.5 rounded-full border border-stone-700 bg-stone-950 transition-all"></div>
+        <div id="dot-2" class="w-3.5 h-3.5 rounded-full border border-stone-700 bg-stone-950 transition-all"></div>
+        <div id="dot-3" class="w-3.5 h-3.5 rounded-full border border-stone-700 bg-stone-950 transition-all"></div>
       </div>
 
-      <div id="pinErrorMsg" class="text-xs text-red-400 font-medium mb-3 h-4"></div>
+      <div id="pinErrorMsg" class="text-xs text-red-400 font-semibold mb-2 h-4"></div>
 
-      <!-- Teclado Numérico -->
-      <div class="grid grid-cols-3 gap-2.5">
-        <button onclick="pressKey('1')" class="py-3 rounded-xl bg-stone-800 text-white hover:bg-amber-600 text-lg font-bold transition active:scale-95">1</button>
-        <button onclick="pressKey('2')" class="py-3 rounded-xl bg-stone-800 text-white hover:bg-amber-600 text-lg font-bold transition active:scale-95">2</button>
-        <button onclick="pressKey('3')" class="py-3 rounded-xl bg-stone-800 text-white hover:bg-amber-600 text-lg font-bold transition active:scale-95">3</button>
-        <button onclick="pressKey('4')" class="py-3 rounded-xl bg-stone-800 text-white hover:bg-amber-600 text-lg font-bold transition active:scale-95">4</button>
-        <button onclick="pressKey('5')" class="py-3 rounded-xl bg-stone-800 text-white hover:bg-amber-600 text-lg font-bold transition active:scale-95">5</button>
-        <button onclick="pressKey('6')" class="py-3 rounded-xl bg-stone-800 text-white hover:bg-amber-600 text-lg font-bold transition active:scale-95">6</button>
-        <button onclick="pressKey('7')" class="py-3 rounded-xl bg-stone-800 text-white hover:bg-amber-600 text-lg font-bold transition active:scale-95">7</button>
-        <button onclick="pressKey('8')" class="py-3 rounded-xl bg-stone-800 text-white hover:bg-amber-600 text-lg font-bold transition active:scale-95">8</button>
-        <button onclick="pressKey('9')" class="py-3 rounded-xl bg-stone-800 text-white hover:bg-amber-600 text-lg font-bold transition active:scale-95">9</button>
-        <button onclick="clearPinKey()" class="py-3 rounded-xl bg-stone-800 hover:bg-red-950 text-xs font-bold text-red-400 transition active:scale-95">BORRAR</button>
-        <button onclick="pressKey('0')" class="py-3 rounded-xl bg-stone-800 text-white hover:bg-amber-600 text-lg font-bold transition active:scale-95">0</button>
-        <button onclick="deleteLastKey()" class="py-3 rounded-xl bg-stone-800 text-white hover:bg-stone-700 text-sm font-bold transition active:scale-95">⌫</button>
+      <!-- Teclado Táctil Móvil -->
+      <div class="grid grid-cols-3 gap-2">
+        <button type="button" data-key="1" class="key-btn rounded-xl bg-stone-800 text-white font-bold">1</button>
+        <button type="button" data-key="2" class="key-btn rounded-xl bg-stone-800 text-white font-bold">2</button>
+        <button type="button" data-key="3" class="key-btn rounded-xl bg-stone-800 text-white font-bold">3</button>
+        <button type="button" data-key="4" class="key-btn rounded-xl bg-stone-800 text-white font-bold">4</button>
+        <button type="button" data-key="5" class="key-btn rounded-xl bg-stone-800 text-white font-bold">5</button>
+        <button type="button" data-key="6" class="key-btn rounded-xl bg-stone-800 text-white font-bold">6</button>
+        <button type="button" data-key="7" class="key-btn rounded-xl bg-stone-800 text-white font-bold">7</button>
+        <button type="button" data-key="8" class="key-btn rounded-xl bg-stone-800 text-white font-bold">8</button>
+        <button type="button" data-key="9" class="key-btn rounded-xl bg-stone-800 text-white font-bold">9</button>
+        <button type="button" id="keyClear" class="key-btn rounded-xl bg-stone-800/60 text-red-400 text-xs font-bold">BORRAR</button>
+        <button type="button" data-key="0" class="key-btn rounded-xl bg-stone-800 text-white font-bold">0</button>
+        <button type="button" id="keyDel" class="key-btn rounded-xl bg-stone-800/60 text-white font-bold">⌫</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL: PAPELITO REVELADO + QUEMA EN VIVO -->
-  <div id="parchmentModal" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-lg hidden flex flex-col items-center justify-center p-4">
-    <div class="text-amber-500 font-cinzel text-xs tracking-widest mb-4 bg-amber-950/40 px-3 py-1 rounded-full border border-amber-800/30">
-      AUTODESTRUCCIÓN EN: <span id="timerSeconds" class="font-bold text-red-400">30s</span>
+  <!-- MODAL: PERGAMINO Y QUEMA -->
+  <div id="parchmentModal" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md hidden flex flex-col items-center justify-center p-4">
+    <div class="text-amber-500 font-cinzel text-[11px] tracking-widest mb-3 bg-amber-950/60 px-3 py-1 rounded-full border border-amber-800/40">
+      AUTODESTRUCCIÓN: <span id="timerSeconds" class="font-bold text-red-400">30s</span>
     </div>
 
     <!-- Contenedor del Pergamino -->
-    <div class="relative w-full max-w-sm">
-      <div id="parchmentPaper" class="parchment rounded-xl p-8 text-center shadow-2xl relative overflow-hidden transition-all duration-700">
-        <div class="text-xs uppercase tracking-widest text-amber-950 font-bold mb-2">Tu Amigo Secreto es</div>
+    <div class="w-full max-w-xs">
+      <div id="parchmentPaper" class="parchment rounded-xl p-6 text-center shadow-2xl relative transition-all duration-700">
+        <div class="text-[11px] uppercase tracking-widest text-amber-950 font-bold">Te tocó regalarle a:</div>
         
-        <div id="targetFriendName" class="font-hand text-6xl text-amber-950 font-bold my-4 py-2 transform -rotate-1 select-none">
+        <div id="targetFriendName" class="font-hand text-5xl text-amber-950 font-bold my-4 py-2 select-none">
           ---
         </div>
 
-        <p class="text-stone-700 text-xs italic mt-2">
-          "Guarda el secreto en tu mente. El papel no debe sobrevivir."
+        <p class="text-stone-700 text-[11px] italic">
+          "Guarda el nombre en tu mente. El papelito se quemará para siempre."
         </p>
       </div>
     </div>
 
     <!-- Botón Quemar -->
-    <button id="burnBtn" onclick="triggerBurn()" class="mt-6 px-6 py-3.5 bg-gradient-to-r from-red-600 via-amber-600 to-red-700 text-white font-cinzel font-bold text-sm tracking-widest rounded-xl shadow-lg shadow-red-900/50 hover:brightness-110 active:scale-95 transition flex items-center space-x-2">
-      <span>🔥</span>
-      <span>QUEMAR PAPELITO AHORA</span>
-      <span>🔥</span>
+    <button id="burnBtn" type="button" class="mt-6 w-full max-w-xs py-4 bg-gradient-to-r from-red-600 via-amber-600 to-red-700 text-white font-cinzel font-bold text-sm tracking-wider rounded-xl shadow-lg active:scale-95 transition">
+      🔥 QUEMAR PAPELITO 🔥
     </button>
   </div>
 
-  <!-- MODAL: ADMINISTRADOR (VER PINS) -->
-  <div id="adminModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden flex items-center justify-center p-4">
-    <div class="w-full max-w-md bg-stone-900 border border-amber-600/30 rounded-2xl p-6 shadow-2xl max-h-[90vh] flex flex-col">
-      <div class="flex justify-between items-center pb-3 border-b border-stone-800">
-        <h3 class="font-cinzel text-lg font-bold text-amber-400">Códigos PIN de Participantes</h3>
-        <button onclick="closeAdminModal()" class="text-stone-400 hover:text-white">✕</button>
+  <!-- MODAL: ADMIN (VER PINS - SIN PROMPT) -->
+  <div id="adminModal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="w-full max-w-sm bg-stone-900 border border-amber-600/40 rounded-2xl p-5 shadow-2xl max-h-[85vh] flex flex-col">
+      <div class="flex justify-between items-center pb-2 border-b border-stone-800">
+        <h3 class="font-cinzel text-base font-bold text-amber-400">Panel Administrador</h3>
+        <button id="closeAdminBtn" type="button" class="text-stone-400 p-1 text-lg">✕</button>
       </div>
 
-      <div class="py-3 text-xs text-stone-400">
-        Envíele el PIN asignado a cada persona por WhatsApp:
+      <!-- Paso 1: Pedir Clave 2295 en pantalla -->
+      <div id="adminPassSection" class="py-4 text-center">
+        <p class="text-xs text-stone-300 mb-3">Introduce la clave de Administrador:</p>
+        <input id="adminPassInput" type="password" inputmode="numeric" maxlength="4" placeholder="••••" class="w-32 text-center text-xl tracking-widest py-2 bg-stone-950 border border-amber-600/40 rounded-lg text-amber-400 focus:outline-none mb-3">
+        <br>
+        <button id="confirmAdminPassBtn" type="button" class="px-4 py-2 bg-amber-600 text-black font-bold rounded-lg text-xs">Entrar</button>
       </div>
 
-      <div id="adminPinsList" class="flex-1 overflow-y-auto space-y-2 pr-1 my-2"></div>
-
-      <button onclick="closeAdminModal()" class="mt-4 w-full py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 text-sm font-semibold transition">
-        Cerrar y Bloquear
-      </button>
+      <!-- Paso 2: Lista de PINs -->
+      <div id="adminPinsSection" class="hidden flex-1 overflow-y-auto space-y-1.5 pr-1 my-2">
+        <div id="adminPinsList"></div>
+      </div>
     </div>
   </div>
 
   <script>
+    // Asignaciones
     const PARTICIPANTS = [
       { name: "Glori",   pin: "1472", target: "Caro" },
       { name: "Vivi",    pin: "2839", target: "Paula" },
@@ -196,7 +211,7 @@
       { name: "Caro",    pin: "5193", target: "Vero C" },
       { name: "Yuli",    pin: "6382", target: "Vero U" },
       { name: "Paula",   pin: "7241", target: "Yuli" },
-      { name: "Jorge",   pin: "8615", target: "Vivi" }
+      { name: "Jorge",   pin: "8615", target: "Vivi" } // Condición solicitada
     ];
 
     const MASTER_PIN = "2295";
@@ -208,52 +223,51 @@
     let currentInputPin = "";
     let autoBurnInterval = null;
 
-    window.addEventListener('DOMContentLoaded', () => {
-      const saved = localStorage.getItem('burned_cache_amigo');
-      if (saved) {
-        try { burnedMap = JSON.parse(saved); } catch(e){}
-      }
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', () => {
+      // Cargar caché local
+      try {
+        const saved = localStorage.getItem('burned_cache_amigo');
+        if (saved) burnedMap = JSON.parse(saved);
+      } catch(e){}
+
       renderGrid();
-      initRealtimeSync();
-      initAmbientCanvas();
+      setupKeypadEvents();
+      setupAdminEvents();
+      startPollingSync();
     });
 
-    async function initRealtimeSync() {
-      // Cargar historial previo
-      try {
-        const res = await fetch(`${SYNC_URL}/json?poll=1`, { cache: 'no-store' });
-        if (res.ok) {
-          const text = await res.text();
-          text.trim().split('\n').forEach(line => {
-            try {
-              const msg = JSON.parse(line);
-              applyIncomingPayload(msg.message);
-            } catch(e){}
-          });
-        }
-      } catch(e){}
+    // Sincronización continua optimizada para red móvil
+    async function startPollingSync() {
+      async function checkUpdates() {
+        try {
+          const res = await fetch(`${SYNC_URL}/json?poll=1`, { cache: 'no-store' });
+          if (res.ok) {
+            const text = await res.text();
+            text.trim().split('\n').forEach(line => {
+              try {
+                const msg = JSON.parse(line);
+                applyPayload(msg.message);
+              } catch(e){}
+            });
+          }
+        } catch(e){}
+      }
 
-      // Escucha continua SSE
-      try {
-        const eventSource = new EventSource(`${SYNC_URL}/sse`);
-        eventSource.onmessage = (event) => {
-          try {
-            const data = JSON.parse(event.data);
-            applyIncomingPayload(data.message);
-          } catch(e){}
-        };
-      } catch(e){}
+      await checkUpdates();
+      // En celular consulta periódicamente en segundo plano
+      setInterval(checkUpdates, 3000);
     }
 
-    function applyIncomingPayload(messageStr) {
+    function applyPayload(messageStr) {
       if (!messageStr) return;
       try {
-        const payload = JSON.parse(messageStr);
-        if (payload.action === 'BURN' && payload.name) {
-          burnedMap[payload.name] = true;
+        const data = JSON.parse(messageStr);
+        if (data.action === 'BURN' && data.name) {
+          burnedMap[data.name] = true;
           localStorage.setItem('burned_cache_amigo', JSON.stringify(burnedMap));
           renderGrid();
-        } else if (payload.action === 'RESET') {
+        } else if (data.action === 'RESET') {
           burnedMap = {};
           localStorage.setItem('burned_cache_amigo', JSON.stringify(burnedMap));
           renderGrid();
@@ -276,6 +290,9 @@
     }
 
     async function broadcastReset() {
+      burnedMap = {};
+      localStorage.setItem('burned_cache_amigo', JSON.stringify(burnedMap));
+      renderGrid();
       try {
         await fetch(SYNC_URL, {
           method: 'POST',
@@ -292,25 +309,29 @@
       PARTICIPANTS.forEach(p => {
         const isBurned = !!burnedMap[p.name];
         const card = document.createElement('div');
-        card.className = `envelope-card rounded-2xl p-5 flex flex-col items-center justify-center text-center cursor-pointer select-none ${isBurned ? 'burned' : ''}`;
+        card.className = `envelope-card rounded-xl p-3.5 flex flex-col items-center justify-center text-center cursor-pointer ${isBurned ? 'burned' : ''}`;
         
         card.innerHTML = `
-          <div class="text-4xl mb-3 ${isBurned ? 'opacity-40' : ''}">
+          <div class="text-3xl mb-1 ${isBurned ? 'opacity-30' : ''}">
             ${isBurned ? '🪨' : '✉️'}
           </div>
-          <span class="font-cinzel font-bold text-base md:text-lg ${isBurned ? 'text-stone-500 line-through' : 'text-stone-100'}">
+          <span class="font-cinzel font-bold text-sm ${isBurned ? 'text-stone-500 line-through' : 'text-stone-100'}">
             ${p.name}
           </span>
-          <span class="mt-2 text-xs font-semibold px-2.5 py-0.5 rounded-full ${isBurned ? 'bg-stone-800 text-stone-500 border border-stone-700' : 'bg-amber-950/60 text-amber-400 border border-amber-600/30'}">
-            ${isBurned ? 'Cenizas 🔥' : 'Toca para abrir'}
+          <span class="mt-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full ${isBurned ? 'bg-stone-800 text-stone-500' : 'bg-amber-950/80 text-amber-400 border border-amber-600/30'}">
+            ${isBurned ? 'Cenizas 🔥' : 'Abrir'}
           </span>
         `;
 
-        if (!isBurned) {
-          card.onclick = () => openPinModal(p);
-        } else {
-          card.onclick = () => alert(`El papelito de ${p.name} ya fue revelado y convertido en cenizas.`);
-        }
+        // Eventos táctiles para evitar bloqueos en teléfono
+        card.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (isBurned) {
+            alert(`El papelito de ${p.name} ya fue destruido en cenizas.`);
+          } else {
+            openPinModal(p);
+          }
+        });
 
         grid.appendChild(card);
       });
@@ -322,7 +343,7 @@
       currentInputPin = "";
       document.getElementById('pinModalTitle').innerText = `Sobre de ${user.name}`;
       document.getElementById('pinErrorMsg').innerText = "";
-      updatePinDots();
+      updateDots();
       document.getElementById('pinModal').classList.remove('hidden');
     }
 
@@ -332,99 +353,111 @@
       currentInputPin = "";
     }
 
-    function pressKey(num) {
-      if (currentInputPin.length < 4) {
-        currentInputPin += num;
-        updatePinDots();
-        if (currentInputPin.length === 4) {
-          setTimeout(validatePin, 100);
-        }
-      }
-    }
-
-    function deleteLastKey() {
-      if (currentInputPin.length > 0) {
-        currentInputPin = currentInputPin.slice(0, -1);
-        updatePinDots();
-      }
-    }
-
-    function clearPinKey() {
-      currentInputPin = "";
-      updatePinDots();
-    }
-
-    function updatePinDots() {
+    function updateDots() {
       for (let i = 0; i < 4; i++) {
         const dot = document.getElementById(`dot-${i}`);
         if (i < currentInputPin.length) {
-          dot.className = "w-3.5 h-3.5 rounded-full border border-amber-400 bg-amber-500 shadow-sm shadow-amber-500 transition-all";
+          dot.className = "w-3.5 h-3.5 rounded-full border border-amber-400 bg-amber-500 transition-all";
         } else {
           dot.className = "w-3.5 h-3.5 rounded-full border border-stone-700 bg-stone-950 transition-all";
         }
       }
     }
 
-    function validatePin() {
+    function setupKeypadEvents() {
+      document.querySelectorAll('[data-key]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (currentInputPin.length < 4) {
+            currentInputPin += btn.getAttribute('data-key');
+            updateDots();
+            if (currentInputPin.length === 4) {
+              setTimeout(checkPin, 120);
+            }
+          }
+        });
+      });
+
+      document.getElementById('keyClear').addEventListener('click', (e) => {
+        e.preventDefault();
+        currentInputPin = "";
+        updateDots();
+      });
+
+      document.getElementById('keyDel').addEventListener('click', (e) => {
+        e.preventDefault();
+        if (currentInputPin.length > 0) {
+          currentInputPin = currentInputPin.slice(0, -1);
+          updateDots();
+        }
+      });
+
+      document.getElementById('closePinBtn').addEventListener('click', closePinModal);
+      document.getElementById('burnBtn').addEventListener('click', executeBurn);
+    }
+
+    function checkPin() {
       if (!activeUser) return;
       if (activeUser.pin === currentInputPin) {
         const userToShow = activeUser;
         closePinModal();
-        revealParchment(userToShow);
+        showParchment(userToShow);
       } else {
         document.getElementById('pinErrorMsg').innerText = "PIN Incorrecto";
         currentInputPin = "";
-        setTimeout(updatePinDots, 400);
+        setTimeout(updateDots, 350);
       }
     }
 
-    function revealParchment(user) {
+    function showParchment(user) {
       activeUser = user;
-      const parchmentModal = document.getElementById('parchmentModal');
-      const targetNameEl = document.getElementById('targetFriendName');
-      const timerSecondsEl = document.getElementById('timerSeconds');
+      const modal = document.getElementById('parchmentModal');
+      const targetName = document.getElementById('targetFriendName');
+      const timerSec = document.getElementById('timerSeconds');
       const paper = document.getElementById('parchmentPaper');
       const burnBtn = document.getElementById('burnBtn');
 
-      targetNameEl.innerText = user.target;
+      targetName.innerText = user.target;
       paper.style.opacity = "1";
       paper.style.filter = "none";
       paper.style.transform = "scale(1)";
       burnBtn.disabled = false;
       burnBtn.classList.remove('opacity-50', 'pointer-events-none');
 
-      parchmentModal.classList.remove('hidden');
+      modal.classList.remove('hidden');
 
-      let timeLeft = 30;
-      timerSecondsEl.innerText = `${timeLeft}s`;
+      let left = 30;
+      timerSec.innerText = `${left}s`;
       clearInterval(autoBurnInterval);
       autoBurnInterval = setInterval(() => {
-        timeLeft--;
-        timerSecondsEl.innerText = `${timeLeft}s`;
-        if (timeLeft <= 0) {
+        left--;
+        timerSec.innerText = `${left}s`;
+        if (left <= 0) {
           clearInterval(autoBurnInterval);
-          triggerBurn();
+          executeBurn();
         }
       }, 1000);
     }
 
-    function triggerBurn() {
+    function executeBurn() {
       clearInterval(autoBurnInterval);
       const burnBtn = document.getElementById('burnBtn');
       burnBtn.disabled = true;
       burnBtn.classList.add('opacity-50', 'pointer-events-none');
 
-      confetti({
-        particleCount: 60,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#ef4444', '#f59e0b', '#78350f', '#000000']
-      });
+      try {
+        confetti({
+          particleCount: 50,
+          spread: 60,
+          origin: { y: 0.6 },
+          colors: ['#ef4444', '#f59e0b', '#78350f', '#000000']
+        });
+      } catch(e){}
 
       const paper = document.getElementById('parchmentPaper');
-      paper.style.transition = "all 1.8s ease-out";
+      paper.style.transition = "all 1.5s ease-out";
       paper.style.filter = "brightness(0.2) contrast(2)";
-      paper.style.transform = "scale(0.8) rotate(3deg)";
+      paper.style.transform = "scale(0.85) rotate(2deg)";
       paper.style.opacity = "0";
 
       if (activeUser) {
@@ -434,88 +467,70 @@
       setTimeout(() => {
         document.getElementById('parchmentModal').classList.add('hidden');
         alert("🔥 Papelito destruido para siempre.");
-      }, 1900);
+      }, 1600);
     }
 
-    function promptMasterPin() {
-      const pin = prompt("🔒 Ingrese la clave de Administrador:");
-      if (pin === MASTER_PIN) {
-        openAdminModal();
-      } else if (pin !== null) {
-        alert("Clave incorrecta.");
-      }
+    // Panel Administrador adaptado a móvil (sin prompt del sistema)
+    function setupAdminEvents() {
+      const adminBtn = document.getElementById('adminBtn');
+      const adminModal = document.getElementById('adminModal');
+      const closeAdminBtn = document.getElementById('closeAdminBtn');
+      const confirmPassBtn = document.getElementById('confirmAdminPassBtn');
+      const passInput = document.getElementById('adminPassInput');
+      const resetBtn = document.getElementById('resetBtn');
+
+      adminBtn.addEventListener('click', () => {
+        passInput.value = '';
+        document.getElementById('adminPassSection').classList.remove('hidden');
+        document.getElementById('adminPinsSection').classList.add('hidden');
+        adminModal.classList.remove('hidden');
+      });
+
+      closeAdminBtn.addEventListener('click', () => {
+        adminModal.classList.add('hidden');
+      });
+
+      confirmPassBtn.addEventListener('click', () => {
+        if (passInput.value === MASTER_PIN) {
+          document.getElementById('adminPassSection').classList.add('hidden');
+          showAdminPinsList();
+        } else {
+          alert("Clave incorrecta.");
+          passInput.value = '';
+        }
+      });
+
+      resetBtn.addEventListener('click', () => {
+        const pass = window.prompt ? prompt("Clave maestra para reiniciar:") : "";
+        if (pass === MASTER_PIN) {
+          if (confirm("¿Reiniciar todos los sobres?")) {
+            broadcastReset();
+          }
+        }
+      });
     }
 
-    function openAdminModal() {
+    function showAdminPinsList() {
       const list = document.getElementById('adminPinsList');
       list.innerHTML = '';
       
       PARTICIPANTS.forEach(p => {
         const isBurned = !!burnedMap[p.name];
-        const item = document.createElement('div');
-        item.className = "flex justify-between items-center bg-stone-950 p-2.5 rounded-lg border border-stone-800 text-xs";
-        item.innerHTML = `
+        const row = document.createElement('div');
+        row.className = "flex justify-between items-center bg-stone-950 p-2 rounded-lg border border-stone-800 text-xs";
+        row.innerHTML = `
           <div>
             <span class="font-bold text-stone-200">${p.name}</span>
-            <span class="ml-2 font-mono text-amber-400 font-bold bg-amber-950/60 px-2 py-0.5 rounded border border-amber-800/40">${p.pin}</span>
+            <span class="ml-2 font-mono text-amber-400 font-bold bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-800/40">${p.pin}</span>
           </div>
           <span class="${isBurned ? 'text-red-400 font-semibold' : 'text-stone-500'}">
             ${isBurned ? 'Cenizas 🔥' : 'Pendiente'}
           </span>
         `;
-        list.appendChild(item);
+        list.appendChild(row);
       });
 
-      document.getElementById('adminModal').classList.remove('hidden');
-    }
-
-    function closeAdminModal() {
-      document.getElementById('adminModal').classList.add('hidden');
-    }
-
-    function promptResetGame() {
-      const pin = prompt("⚠️ Ingrese la clave maestra para reiniciar:");
-      if (pin === MASTER_PIN) {
-        if (confirm("¿Seguro que desea reiniciar todos los sobres?")) {
-          broadcastReset();
-        }
-      } else if (pin !== null) {
-        alert("Clave incorrecta.");
-      }
-    }
-
-    function initAmbientCanvas() {
-      const canvas = document.getElementById('ambientCanvas');
-      const ctx = canvas.getContext('2d');
-      let w, h;
-      function resize() {
-        w = canvas.width = window.innerWidth;
-        h = canvas.height = window.innerHeight;
-      }
-      window.addEventListener('resize', resize);
-      resize();
-
-      const embers = Array.from({ length: 25 }, () => ({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        size: Math.random() * 2 + 1,
-        speedY: Math.random() * 1 + 0.3,
-        opacity: Math.random() * 0.7 + 0.3
-      }));
-
-      function render() {
-        ctx.clearRect(0, 0, w, h);
-        embers.forEach(e => {
-          e.y -= e.speedY;
-          if (e.y < -10) { e.y = h + 10; e.x = Math.random() * w; }
-          ctx.fillStyle = `rgba(245, 158, 11, ${e.opacity})`;
-          ctx.beginPath();
-          ctx.arc(e.x, e.y, e.size, 0, Math.PI * 2);
-          ctx.fill();
-        });
-        requestAnimationFrame(render);
-      }
-      render();
+      document.getElementById('adminPinsSection').classList.remove('hidden');
     }
   </script>
 </body>
