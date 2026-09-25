@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Amigo Secreto - El Fuego Sagrado 🔥</title>
   
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   
-  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Reenie+Beanie&display=swap" rel="stylesheet">
@@ -31,7 +29,7 @@
     .envelope-card {
       background: linear-gradient(145deg, #1f1b18 0%, #14110f 100%);
       border: 1px solid rgba(217, 119, 6, 0.25);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.3s ease;
     }
     .envelope-card:hover:not(.burned) {
       transform: translateY(-4px);
@@ -45,29 +43,19 @@
       opacity: 0.55;
     }
 
-    /* Pergamino */
     .parchment {
       background: #f4ecd8;
       background-image: 
-        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.8), rgba(244, 236, 216, 0.9)),
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.85), rgba(244, 236, 216, 0.95)),
         radial-gradient(circle at 0% 100%, rgba(139, 69, 19, 0.15), transparent 40%),
         radial-gradient(circle at 100% 0%, rgba(139, 69, 19, 0.15), transparent 40%);
       box-shadow: inset 0 0 40px rgba(115, 60, 15, 0.3), 0 20px 40px rgba(0,0,0,0.8);
       border: 1px solid #d4c29d;
     }
-
-    @keyframes pulse-fire {
-      0%, 100% { opacity: 0.3; transform: scale(1); }
-      50% { opacity: 0.6; transform: scale(1.08); }
-    }
-    .fire-glow {
-      animation: pulse-fire 2s ease-in-out infinite;
-    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between selection:bg-amber-500 selection:text-black">
 
-  <!-- Canvas partículas de fondo -->
   <canvas id="ambientCanvas" class="fixed inset-0 pointer-events-none z-0"></canvas>
 
   <!-- Barra Superior -->
@@ -78,19 +66,16 @@
     </div>
     
     <div class="flex items-center space-x-2">
-      <!-- Indicador Estado Sincronización -->
       <div id="syncBadge" class="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/40 text-xs text-emerald-400">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-        <span id="syncText">En línea</span>
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span id="syncText">Sincronizado</span>
       </div>
 
-      <!-- Botón Ver PINs (Protegido con 2295) -->
       <button onclick="promptMasterPin()" class="px-3 py-1.5 rounded-lg bg-stone-900 border border-amber-800/40 text-amber-300 hover:text-amber-100 hover:bg-stone-800 text-xs font-medium transition flex items-center space-x-1">
         <span>🔑</span>
         <span>Ver PINs</span>
       </button>
 
-      <!-- Botón Reiniciar (Solo Admin) -->
       <button onclick="promptResetGame()" class="px-2.5 py-1.5 rounded-lg bg-stone-900 border border-red-900/40 text-red-400 hover:bg-red-950 text-xs transition" title="Reiniciar Sorteo (Admin)">
         🔄
       </button>
@@ -104,17 +89,14 @@
         El Fuego Sagrado
       </h1>
       <p class="text-stone-400 text-sm md:text-base max-w-md mx-auto">
-        Selecciona tu sobre, introduce tu PIN de seguridad y quema el papel. <span class="text-amber-400 font-semibold">Solo se puede ver una vez</span>.
+        Toca tu sobre, ingresa tu PIN y quema tu papelito. <span class="text-amber-400 font-semibold">Solo se puede ver una vez</span>.
       </p>
     </div>
 
-    <!-- Grid de Sobres de Participantes -->
-    <div id="envelopesGrid" class="w-full grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-6">
-      <!-- Generado dinámicamente -->
-    </div>
+    <!-- Grid de Sobres -->
+    <div id="envelopesGrid" class="w-full grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-6"></div>
   </main>
 
-  <!-- Footer -->
   <footer class="relative z-10 py-4 text-center text-xs text-stone-600 border-t border-stone-900">
     Sorteo Protegido &bull; Actualización en Vivo en Todos los Celulares
   </footer>
@@ -125,7 +107,7 @@
       <button onclick="closePinModal()" class="absolute top-4 right-4 text-stone-500 hover:text-stone-300 text-lg">✕</button>
       
       <div class="text-3xl mb-1">✉️</div>
-      <h3 class="font-cinzel text-lg font-bold text-amber-400" id="pinModalTitle">Sobre de Participante</h3>
+      <h3 class="font-cinzel text-lg font-bold text-amber-400" id="pinModalTitle">Sobre</h3>
       <p class="text-xs text-stone-400 mt-1 mb-4">Ingresa tu PIN de 4 dígitos</p>
 
       <!-- Display PIN -->
@@ -140,46 +122,40 @@
 
       <!-- Teclado Numérico -->
       <div class="grid grid-cols-3 gap-2.5">
-        <button onclick="pressKey('1')" class="py-3 rounded-xl bg-stone-800/80 hover:bg-amber-600 text-lg font-bold transition active:scale-95">1</button>
-        <button onclick="pressKey('2')" class="py-3 rounded-xl bg-stone-800/80 hover:bg-amber-600 text-lg font-bold transition active:scale-95">2</button>
-        <button onclick="pressKey('3')" class="py-3 rounded-xl bg-stone-800/80 hover:bg-amber-600 text-lg font-bold transition active:scale-95">3</button>
-        <button onclick="pressKey('4')" class="py-3 rounded-xl bg-stone-800/80 hover:bg-amber-600 text-lg font-bold transition active:scale-95">4</button>
-        <button onclick="pressKey('5')" class="py-3 rounded-xl bg-stone-800/80 hover:bg-amber-600 text-lg font-bold transition active:scale-95">5</button>
-        <button onclick="pressKey('6')" class="py-3 rounded-xl bg-stone-800/80 hover:bg-amber-600 text-lg font-bold transition active:scale-95">6</button>
-        <button onclick="pressKey('7')" class="py-3 rounded-xl bg-stone-800/80 hover:bg-amber-600 text-lg font-bold transition active:scale-95">7</button>
-        <button onclick="pressKey('8')" class="py-3 rounded-xl bg-stone-800/80 hover:bg-amber-600 text-lg font-bold transition active:scale-95">8</button>
-        <button onclick="pressKey('9')" class="py-3 rounded-xl bg-stone-800/80 hover:bg-amber-600 text-lg font-bold transition active:scale-95">9</button>
-        <button onclick="clearPinKey()" class="py-3 rounded-xl bg-stone-800/50 hover:bg-red-950 text-xs font-bold text-red-400 transition active:scale-95">BORRAR</button>
-        <button onclick="pressKey('0')" class="py-3 rounded-xl bg-stone-800/80 hover:bg-amber-600 text-lg font-bold transition active:scale-95">0</button>
-        <button onclick="deleteLastKey()" class="py-3 rounded-xl bg-stone-800/50 hover:bg-stone-700 text-sm font-bold transition active:scale-95">⌫</button>
+        <button onclick="pressKey('1')" class="py-3 rounded-xl bg-stone-800 text-white hover:bg-amber-600 text-lg font-bold transition active:scale-95">1</button>
+        <button onclick="pressKey('2')" class="py-3 rounded-xl bg-stone-800 text-white hover:bg-amber-600 text-lg font-bold transition active:scale-95">2</button>
+        <button onclick="pressKey('3')" class="py-3 rounded-xl bg-stone-800 text-white hover:bg-amber-600 text-lg font-bold transition active:scale-95">3</button>
+        <button onclick="pressKey('4')" class="py-3 rounded-xl bg-stone-800 text-white hover:bg-amber-600 text-lg font-bold transition active:scale-95">4</button>
+        <button onclick="pressKey('5')" class="py-3 rounded-xl bg-stone-800 text-white hover:bg-amber-600 text-lg font-bold transition active:scale-95">5</button>
+        <button onclick="pressKey('6')" class="py-3 rounded-xl bg-stone-800 text-white hover:bg-amber-600 text-lg font-bold transition active:scale-95">6</button>
+        <button onclick="pressKey('7')" class="py-3 rounded-xl bg-stone-800 text-white hover:bg-amber-600 text-lg font-bold transition active:scale-95">7</button>
+        <button onclick="pressKey('8')" class="py-3 rounded-xl bg-stone-800 text-white hover:bg-amber-600 text-lg font-bold transition active:scale-95">8</button>
+        <button onclick="pressKey('9')" class="py-3 rounded-xl bg-stone-800 text-white hover:bg-amber-600 text-lg font-bold transition active:scale-95">9</button>
+        <button onclick="clearPinKey()" class="py-3 rounded-xl bg-stone-800 hover:bg-red-950 text-xs font-bold text-red-400 transition active:scale-95">BORRAR</button>
+        <button onclick="pressKey('0')" class="py-3 rounded-xl bg-stone-800 text-white hover:bg-amber-600 text-lg font-bold transition active:scale-95">0</button>
+        <button onclick="deleteLastKey()" class="py-3 rounded-xl bg-stone-800 text-white hover:bg-stone-700 text-sm font-bold transition active:scale-95">⌫</button>
       </div>
     </div>
   </div>
 
   <!-- MODAL: PAPELITO REVELADO + QUEMA EN VIVO -->
   <div id="parchmentModal" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-lg hidden flex flex-col items-center justify-center p-4">
-    <!-- Reloj de autodestrucción -->
-    <div id="autoBurnTimer" class="text-amber-500 font-cinzel text-xs tracking-widest mb-3 bg-amber-950/40 px-3 py-1 rounded-full border border-amber-800/30">
+    <div class="text-amber-500 font-cinzel text-xs tracking-widest mb-4 bg-amber-950/40 px-3 py-1 rounded-full border border-amber-800/30">
       AUTODESTRUCCIÓN EN: <span id="timerSeconds" class="font-bold text-red-400">30s</span>
     </div>
 
     <!-- Contenedor del Pergamino -->
     <div class="relative w-full max-w-sm">
       <div id="parchmentPaper" class="parchment rounded-xl p-8 text-center shadow-2xl relative overflow-hidden transition-all duration-700">
-        <div class="absolute -top-12 -left-12 w-24 h-24 bg-amber-700/10 rounded-full blur-xl pointer-events-none"></div>
         <div class="text-xs uppercase tracking-widest text-amber-950 font-bold mb-2">Tu Amigo Secreto es</div>
         
-        <!-- Nombre del amigo asignado -->
-        <div id="targetFriendName" class="font-hand text-5xl md:text-6xl text-amber-950 font-bold my-4 py-2 transform -rotate-1 select-none">
-          Cargando...
+        <div id="targetFriendName" class="font-hand text-6xl text-amber-950 font-bold my-4 py-2 transform -rotate-1 select-none">
+          ---
         </div>
 
         <p class="text-stone-700 text-xs italic mt-2">
           "Guarda el secreto en tu mente. El papel no debe sobrevivir."
         </p>
-
-        <!-- Canvas de fuego para la combustión -->
-        <canvas id="burnEffectCanvas" class="absolute inset-0 w-full h-full pointer-events-none hidden"></canvas>
       </div>
     </div>
 
@@ -200,10 +176,9 @@
       </div>
 
       <div class="py-3 text-xs text-stone-400">
-        Envíale el PIN correspondiente a cada persona por WhatsApp:
+        Envíele el PIN asignado a cada persona por WhatsApp:
       </div>
 
-      <!-- Lista PINs -->
       <div id="adminPinsList" class="flex-1 overflow-y-auto space-y-2 pr-1 my-2"></div>
 
       <button onclick="closeAdminModal()" class="mt-4 w-full py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 text-sm font-semibold transition">
@@ -213,12 +188,6 @@
   </div>
 
   <script>
-    /* ==========================================================
-       DATOS Y ASIGNACIONES
-       - Regla obligatoria: Jorge regala a Vivi
-       - Nadie se regala a sí mismo
-       - Permutación circular completa
-    ========================================================== */
     const PARTICIPANTS = [
       { name: "Glori",   pin: "1472", target: "Caro" },
       { name: "Vivi",    pin: "2839", target: "Paula" },
@@ -227,27 +196,19 @@
       { name: "Caro",    pin: "5193", target: "Vero C" },
       { name: "Yuli",    pin: "6382", target: "Vero U" },
       { name: "Paula",   pin: "7241", target: "Yuli" },
-      { name: "Jorge",   pin: "8615", target: "Vivi" } // Asignación solicitada
+      { name: "Jorge",   pin: "8615", target: "Vivi" }
     ];
 
     const MASTER_PIN = "2295";
-    
-    // Canal en tiempo real público de alta disponibilidad (REST + SSE)
     const REALTIME_TOPIC = "amigo_secreto_supra_2026_fire_sync";
     const SYNC_URL = `https://ntfy.sh/${REALTIME_TOPIC}`;
 
-    // Estado local
     let burnedMap = {};
-    let selectedUser = null;
+    let activeUser = null;
     let currentInputPin = "";
     let autoBurnInterval = null;
-    let audioCtx = null;
 
-    /* ==========================================================
-       INICIALIZACIÓN
-    ========================================================== */
     window.addEventListener('DOMContentLoaded', () => {
-      // Cargar caché local inmediata
       const saved = localStorage.getItem('burned_cache_amigo');
       if (saved) {
         try { burnedMap = JSON.parse(saved); } catch(e){}
@@ -257,56 +218,34 @@
       initAmbientCanvas();
     });
 
-    /* ==========================================================
-       SINCRONIZACIÓN EN TIEMPO REAL MULTI-DISPOSITIVO
-    ========================================================== */
     async function initRealtimeSync() {
-      const syncBadge = document.getElementById('syncBadge');
-      const syncText = document.getElementById('syncText');
-
-      // 1. Obtener eventos históricos desde el servidor
+      // Cargar historial previo
       try {
         const res = await fetch(`${SYNC_URL}/json?poll=1`, { cache: 'no-store' });
         if (res.ok) {
           const text = await res.text();
-          const lines = text.trim().split('\n');
-          lines.forEach(line => {
+          text.trim().split('\n').forEach(line => {
             try {
               const msg = JSON.parse(line);
-              handleIncomingPayload(msg.message);
+              applyIncomingPayload(msg.message);
             } catch(e){}
           });
         }
-      } catch (err) {
-        console.warn("Fallo polling inicial, continuando con suscripción en vivo...", err);
-      }
+      } catch(e){}
 
-      // 2. Conectar stream Server-Sent Events (SSE) nativo
+      // Escucha continua SSE
       try {
         const eventSource = new EventSource(`${SYNC_URL}/sse`);
-        
-        eventSource.onopen = () => {
-          syncBadge.className = "flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/40 text-xs text-emerald-400";
-          syncText.innerText = "En línea";
-        };
-
         eventSource.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data);
-            handleIncomingPayload(data.message);
+            applyIncomingPayload(data.message);
           } catch(e){}
         };
-
-        eventSource.onerror = () => {
-          syncBadge.className = "flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-amber-950/60 border border-amber-500/40 text-xs text-amber-400";
-          syncText.innerText = "Reconectando...";
-        };
-      } catch(e) {
-        console.error("Error SSE:", e);
-      }
+      } catch(e){}
     }
 
-    function handleIncomingPayload(messageStr) {
+    function applyIncomingPayload(messageStr) {
       if (!messageStr) return;
       try {
         const payload = JSON.parse(messageStr);
@@ -327,31 +266,25 @@
       localStorage.setItem('burned_cache_amigo', JSON.stringify(burnedMap));
       renderGrid();
 
-      // Enviar a todos los celulares
       try {
         await fetch(SYNC_URL, {
           method: 'POST',
-          body: JSON.stringify({ action: 'BURN', name: name, timestamp: Date.now() }),
+          body: JSON.stringify({ action: 'BURN', name: name }),
           headers: { 'Content-Type': 'text/plain' }
         });
-      } catch(e) {
-        console.warn("Error enviando broadcast:", e);
-      }
+      } catch(e){}
     }
 
     async function broadcastReset() {
       try {
         await fetch(SYNC_URL, {
           method: 'POST',
-          body: JSON.stringify({ action: 'RESET', timestamp: Date.now() }),
+          body: JSON.stringify({ action: 'RESET' }),
           headers: { 'Content-Type': 'text/plain' }
         });
       } catch(e){}
     }
 
-    /* ==========================================================
-       RENDERIZADO DE LA GRILLA
-    ========================================================== */
     function renderGrid() {
       const grid = document.getElementById('envelopesGrid');
       grid.innerHTML = '';
@@ -362,7 +295,7 @@
         card.className = `envelope-card rounded-2xl p-5 flex flex-col items-center justify-center text-center cursor-pointer select-none ${isBurned ? 'burned' : ''}`;
         
         card.innerHTML = `
-          <div class="text-4xl mb-3 ${isBurned ? 'filter grayscale opacity-40' : 'transform group-hover:scale-110 transition'}">
+          <div class="text-4xl mb-3 ${isBurned ? 'opacity-40' : ''}">
             ${isBurned ? '🪨' : '✉️'}
           </div>
           <span class="font-cinzel font-bold text-base md:text-lg ${isBurned ? 'text-stone-500 line-through' : 'text-stone-100'}">
@@ -383,12 +316,9 @@
       });
     }
 
-    /* ==========================================================
-       GESTIÓN DEL PIN DE CADA PERSONA
-    ========================================================== */
     function openPinModal(user) {
       if (burnedMap[user.name]) return;
-      selectedUser = user;
+      activeUser = user;
       currentInputPin = "";
       document.getElementById('pinModalTitle').innerText = `Sobre de ${user.name}`;
       document.getElementById('pinErrorMsg').innerText = "";
@@ -398,7 +328,7 @@
 
     function closePinModal() {
       document.getElementById('pinModal').classList.add('hidden');
-      selectedUser = null;
+      activeUser = null;
       currentInputPin = "";
     }
 
@@ -407,7 +337,7 @@
         currentInputPin += num;
         updatePinDots();
         if (currentInputPin.length === 4) {
-          validateEnteredPin();
+          setTimeout(validatePin, 100);
         }
       }
     }
@@ -435,23 +365,21 @@
       }
     }
 
-    function validateEnteredPin() {
-      const errorMsg = document.getElementById('pinErrorMsg');
-      if (selectedUser.pin === currentInputPin) {
-        // PIN Correcto -> Abrir pergamino y bloquear para siempre
+    function validatePin() {
+      if (!activeUser) return;
+      if (activeUser.pin === currentInputPin) {
+        const userToShow = activeUser;
         closePinModal();
-        revealParchment(selectedUser);
+        revealParchment(userToShow);
       } else {
-        errorMsg.innerText = "PIN Incorrecto";
+        document.getElementById('pinErrorMsg').innerText = "PIN Incorrecto";
         currentInputPin = "";
-        setTimeout(updatePinDots, 500);
+        setTimeout(updatePinDots, 400);
       }
     }
 
-    /* ==========================================================
-       REVELACIÓN Y QUEMA DE PAPELITO
-    ========================================================== */
     function revealParchment(user) {
+      activeUser = user;
       const parchmentModal = document.getElementById('parchmentModal');
       const targetNameEl = document.getElementById('targetFriendName');
       const timerSecondsEl = document.getElementById('timerSeconds');
@@ -460,13 +388,13 @@
 
       targetNameEl.innerText = user.target;
       paper.style.opacity = "1";
+      paper.style.filter = "none";
       paper.style.transform = "scale(1)";
       burnBtn.disabled = false;
       burnBtn.classList.remove('opacity-50', 'pointer-events-none');
 
       parchmentModal.classList.remove('hidden');
 
-      // Temporizador de autodestrucción (30 segundos)
       let timeLeft = 30;
       timerSecondsEl.innerText = `${timeLeft}s`;
       clearInterval(autoBurnInterval);
@@ -480,63 +408,35 @@
       }, 1000);
     }
 
-    function playFireSound() {
-      try {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const bufferSize = audioCtx.sampleRate * 2.5;
-        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 1.5));
-        }
-        const noise = audioCtx.createBufferSource();
-        noise.buffer = buffer;
-        const filter = audioCtx.createBiquadFilter();
-        filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(800, audioCtx.currentTime);
-        filter.frequency.linearRampToValueAtTime(150, audioCtx.currentTime + 2.5);
-        noise.connect(filter);
-        filter.connect(audioCtx.destination);
-        noise.start();
-      } catch(e){}
-    }
-
     function triggerBurn() {
       clearInterval(autoBurnInterval);
       const burnBtn = document.getElementById('burnBtn');
       burnBtn.disabled = true;
       burnBtn.classList.add('opacity-50', 'pointer-events-none');
-      
-      playFireSound();
 
-      // Efecto confeti de fuego/ceniza
       confetti({
-        particleCount: 50,
-        spread: 80,
+        particleCount: 60,
+        spread: 70,
         origin: { y: 0.6 },
         colors: ['#ef4444', '#f59e0b', '#78350f', '#000000']
       });
 
       const paper = document.getElementById('parchmentPaper');
-      paper.style.transition = "all 2s ease-out";
-      paper.style.filter = "brightness(0.3) contrast(2) sepia(1) hue-rotate(-20deg)";
-      paper.style.transform = "scale(0.85) rotate(2deg)";
+      paper.style.transition = "all 1.8s ease-out";
+      paper.style.filter = "brightness(0.2) contrast(2)";
+      paper.style.transform = "scale(0.8) rotate(3deg)";
       paper.style.opacity = "0";
 
-      // Transmitir a todos los celulares inmediatamente
-      if (selectedUser) {
-        broadcastBurn(selectedUser.name);
+      if (activeUser) {
+        broadcastBurn(activeUser.name);
       }
 
       setTimeout(() => {
         document.getElementById('parchmentModal').classList.add('hidden');
-        alert("🔥 El papelito ha sido destruido en cenizas.");
-      }, 2100);
+        alert("🔥 Papelito destruido para siempre.");
+      }, 1900);
     }
 
-    /* ==========================================================
-       PANEL ADMIN CON PIN 2295
-    ========================================================== */
     function promptMasterPin() {
       const pin = prompt("🔒 Ingrese la clave de Administrador:");
       if (pin === MASTER_PIN) {
@@ -574,9 +474,9 @@
     }
 
     function promptResetGame() {
-      const pin = prompt("⚠️ Para REINICIAR todos los sobres ingrese la clave maestra:");
+      const pin = prompt("⚠️ Ingrese la clave maestra para reiniciar:");
       if (pin === MASTER_PIN) {
-        if (confirm("¿Está seguro de querer reiniciar todo el sorteo a ceros?")) {
+        if (confirm("¿Seguro que desea reiniciar todos los sobres?")) {
           broadcastReset();
         }
       } else if (pin !== null) {
@@ -584,9 +484,6 @@
       }
     }
 
-    /* ==========================================================
-       ANIMACIÓN DE CHISPAS AMBIENTALES
-    ========================================================== */
     function initAmbientCanvas() {
       const canvas = document.getElementById('ambientCanvas');
       const ctx = canvas.getContext('2d');
@@ -598,12 +495,11 @@
       window.addEventListener('resize', resize);
       resize();
 
-      const embers = Array.from({ length: 30 }, () => ({
+      const embers = Array.from({ length: 25 }, () => ({
         x: Math.random() * w,
         y: Math.random() * h,
         size: Math.random() * 2 + 1,
         speedY: Math.random() * 1 + 0.3,
-        speedX: (Math.random() - 0.5) * 0.5,
         opacity: Math.random() * 0.7 + 0.3
       }));
 
@@ -611,7 +507,6 @@
         ctx.clearRect(0, 0, w, h);
         embers.forEach(e => {
           e.y -= e.speedY;
-          e.x += e.speedX;
           if (e.y < -10) { e.y = h + 10; e.x = Math.random() * w; }
           ctx.fillStyle = `rgba(245, 158, 11, ${e.opacity})`;
           ctx.beginPath();
